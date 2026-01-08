@@ -1,0 +1,12 @@
+# Backend team owns API
+/apps/api/                    @backend-team
+
+# Frontend team owns Web
+/apps/web/                    @frontend-team
+
+# Contract changes need both teams
+/contracts/                   @backend-team @frontend-team
+
+# Infrastructure needs tech lead
+/infra/                       @tech-lead
+/.github/workflows/           @tech-lead

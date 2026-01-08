@@ -1,0 +1,51 @@
+# .NET
+bin/
+obj/
+*.user
+*.userosscache
+*.suo
+*.cache
+*.log
+.vs/
+*.rsuser
+publish/
+
+# Node
+node_modules/
+dist/
+.npm
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+appsettings.Development.json
+appsettings.*.json
+!appsettings.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+build/
+out/
+
+# Test
+coverage/
+*.coverage
+TestResults/
+
+# Misc
+*.log
+logs/
+tmp/
+temp/
