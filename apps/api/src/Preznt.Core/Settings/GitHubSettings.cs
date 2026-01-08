@@ -1,3 +1,5 @@
+using Preznt.Core.Constants;
+
 namespace Preznt.Core.Settings;
 
 public sealed class GitHubSettings
