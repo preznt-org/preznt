@@ -49,3 +49,6 @@ TestResults/
 logs/
 tmp/
 temp/
+
+# Documentation (draw.io diagrams)
+docs/
