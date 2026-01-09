@@ -28,7 +28,8 @@ public sealed class JwtService : IJwtService
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.Username),
             new Claim("github_id", user.GitHubId.ToString()),
-            new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
+            new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+            new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
         };
 
         var token = new JwtSecurityToken(

@@ -9,18 +9,18 @@ using Preznt.Core.Interfaces.Services;
 
 public sealed class AuthService : IAuthService
 {
-    private readonly IGitHubAuthService _gitHubAuthService;
+    private readonly IGitHubService _gitHubService;
     private readonly IUserRepository _userRepository;
     private readonly IJwtService _jwtService;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
-        IGitHubAuthService gitHubAuthService,
+        IGitHubService gitHubService,
         IUserRepository userRepository,
         IJwtService jwtService,
         ILogger<AuthService> logger)
     {
-        _gitHubAuthService = gitHubAuthService;
+        _gitHubService = gitHubService;
         _userRepository = userRepository;
         _jwtService = jwtService;
         _logger = logger;
@@ -29,23 +29,23 @@ public sealed class AuthService : IAuthService
     public string GetGitHubLoginUrl(string? returnUrl = null)
     {
         var state = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-        return _gitHubAuthService.GetAuthorizationUrl(state);
+        return _gitHubService.GetAuthorizationUrl(state);
     }
 
     public async Task<Result<AuthResponse>> HandleGitHubCallbackAsync(
-        string code, 
-        string state, 
+        string code,
+        string state,
         CancellationToken ct = default)
     {
-        var tokenResponse = await _gitHubAuthService.ExchangeCodeForTokenAsync(code, ct);
-        if (tokenResponse is null)
+        var tokenResult = await _gitHubService.ExchangeCodeForTokenAsync(code, ct);
+        if (tokenResult is null)
         {
             _logger.LogWarning("Failed to exchange GitHub code for token");
             return Result<AuthResponse>.Failure(
                 new ResultError(ErrorType.Unauthorized, "Failed to authenticate with GitHub"));
         }
 
-        var gitHubUser = await _gitHubAuthService.GetUserInfoAsync(tokenResponse.AccessToken, ct);
+        var gitHubUser = await _gitHubService.GetUserAsync(tokenResult.AccessToken, ct);
         if (gitHubUser is null)
         {
             _logger.LogWarning("Failed to get GitHub user info");
@@ -54,7 +54,7 @@ public sealed class AuthService : IAuthService
         }
 
         var user = await _userRepository.GetByGitHubIdAsync(gitHubUser.Id, ct);
-        
+
         if (user is null)
         {
             user = User.Create(
@@ -63,8 +63,8 @@ public sealed class AuthService : IAuthService
                 gitHubUser.Email,
                 gitHubUser.Name,
                 gitHubUser.AvatarUrl,
-                tokenResponse.AccessToken);
-            
+                tokenResult.AccessToken);
+
             _userRepository.Add(user);
             _logger.LogInformation("Created new user {Username}", gitHubUser.Login);
         }
@@ -75,8 +75,8 @@ public sealed class AuthService : IAuthService
                 gitHubUser.Email,
                 gitHubUser.Name,
                 gitHubUser.AvatarUrl,
-                tokenResponse.AccessToken);
-            
+                tokenResult.AccessToken);
+
             _userRepository.Update(user);
         }
 
@@ -112,24 +112,53 @@ public sealed class AuthService : IAuthService
         return Result<bool>.Success(true);
     }
 
-    public async Task<Result<UserInfo>> GetCurrentUserAsync(Guid userId, CancellationToken ct = default)
+    public async Task<Result<MeResponse>> GetCurrentUserAsync(Guid userId, int page = 1, int pageSize = 10, CancellationToken ct = default)
     {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 50);
+
         var user = await _userRepository.GetByIdAsync(userId, ct);
-        
+
         if (user is null)
         {
-            return Result<UserInfo>.Failure(new ResultError(ErrorType.NotFound, "User not found"));
+            return Result<MeResponse>.Failure(new ResultError(ErrorType.NotFound, "User not found"));
         }
 
-        return Result<UserInfo>.Success(new UserInfo(
-            user.Id, user.Username, user.Email, user.Name, user.AvatarUrl));
+        // Fetch repos and user bio from GitHub
+        var allRepos = await _gitHubService.GetUserRepositoriesAsync(user.GitHubAccessToken, ct);
+        var gitHubUser = await _gitHubService.GetUserAsync(user.GitHubAccessToken, ct);
+
+        // Filter non-forked repos, sort by stars
+        var ownRepos = allRepos
+            .OrderByDescending(r => r.Stars)
+            .ThenByDescending(r => r.UpdatedAt)
+            .ToList();
+
+        var totalCount = ownRepos.Count;
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        var repositories = ownRepos
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(r => new RepositoryInfo(
+                r.Id, r.Name, r.Description, r.HtmlUrl, r.Language, r.Stars, r.Forks, r.UpdatedAt))
+            .ToList();
+
+        var pagination = new PaginationInfo(
+            page, pageSize, totalCount, totalPages,
+            HasPreviousPage: page > 1,
+            HasNextPage: page < totalPages);
+
+        return Result<MeResponse>.Success(new MeResponse(
+            user.Id, user.Username, user.Email, user.Name, user.AvatarUrl,
+            gitHubUser?.Bio, repositories, pagination));
     }
 
     private async Task<Result<AuthResponse>> GenerateTokensAndSave(User user, CancellationToken ct)
     {
         var accessToken = _jwtService.GenerateAccessToken(user);
         var (refreshToken, refreshHash, refreshExpiry) = _jwtService.GenerateRefreshToken();
-        
+
         user.SetRefreshToken(refreshHash, refreshExpiry);
         _userRepository.Update(user);
         await _userRepository.SaveChangesAsync(ct);

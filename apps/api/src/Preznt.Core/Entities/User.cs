@@ -11,6 +11,7 @@ public sealed class User
     public string GitHubAccessToken { get; private set; } = null!;
     public string? RefreshTokenHash { get; private set; }
     public DateTime? RefreshTokenExpiresAt { get; private set; }
+    public DateTime? TokensInvalidatedAt { get; private set; }
     public DateTime CreatedAt {get; private set; }
     public DateTime UpdatedAt {get; private set; }
 
@@ -65,6 +66,7 @@ public sealed class User
     {
         RefreshTokenHash = null;
         RefreshTokenExpiresAt = null;
+        TokensInvalidatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
     }
 

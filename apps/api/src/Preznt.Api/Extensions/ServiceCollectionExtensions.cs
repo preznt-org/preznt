@@ -1,5 +1,7 @@
 namespace Preznt.Api.Extensions;
 
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +31,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserRepository, UserRepository>();
 
         // Services
-        services.AddHttpClient<IGitHubAuthService, GitHubAuthService>();
+        services.AddSingleton<IGitHubService, GitHubService>();
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthService, AuthService>();
 
@@ -57,6 +59,47 @@ public static class ServiceCollectionExtensions
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
                     ClockSkew = TimeSpan.Zero
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = async context =>
+                    {
+                        var userRepo = context.HttpContext.RequestServices.GetRequiredService<IUserRepository>();
+                        
+                        var userIdClaim = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                        if (!Guid.TryParse(userIdClaim, out var userId))
+                        {
+                            context.Fail("Invalid user ID");
+                            return;
+                        }
+
+                        var user = await userRepo.GetByIdAsync(userId);
+                        if (user is null)
+                        {
+                            context.Fail("User not found");
+                            return;
+                        }
+
+                        // Check if token was issued before logout
+                        if (user.TokensInvalidatedAt.HasValue)
+                        {
+                            var iatClaim = context.Principal?.FindFirst(JwtRegisteredClaimNames.Iat)?.Value;
+                            if (!long.TryParse(iatClaim, out var iatUnix))
+                            {
+                                // No iat claim means old token - reject it
+                                context.Fail("Token missing issued-at claim");
+                                return;
+                            }
+                            
+                            var issuedAt = DateTimeOffset.FromUnixTimeSeconds(iatUnix).UtcDateTime;
+                            if (issuedAt < user.TokensInvalidatedAt.Value)
+                            {
+                                context.Fail("Token has been invalidated");
+                                return;
+                            }
+                        }
+                    }
                 };
             });
 

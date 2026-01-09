@@ -30,7 +30,7 @@ public static class AuthEndpoints
         
         group.MapGet("/me", GetCurrentUser)
             .WithName("GetCurrentUser")
-            .WithSummary("Gets the currently authenticated user")
+            .WithSummary("Gets the authenticated user with their GitHub repositories")
             .RequireAuthorization();
 
         return group;
@@ -103,18 +103,31 @@ public static class AuthEndpoints
     private static async Task<IResult> GetCurrentUser(
         HttpContext context,
         IAuthService authService,
-        CancellationToken ct)
+        CancellationToken ct = default)
     {
         var userId = GetUserId(context);
         if (userId is null)
             return Results.Unauthorized();
 
-        var result = await authService.GetCurrentUserAsync(userId.Value, ct);
-        
+        var page = GetHeaderInt(context, "X-Page", 1);
+        var pageSize = GetHeaderInt(context, "X-Page-Size", 10);
+
+        var result = await authService.GetCurrentUserAsync(userId.Value, page, pageSize, ct);
+
         if (result.IsFailure)
             return ToProblem(result.Error!);
 
         return Results.Ok(result.Value);
+    }
+
+    private static int GetHeaderInt(HttpContext context, string headerName, int defaultValue)
+    {
+        if (context.Request.Headers.TryGetValue(headerName, out var value) &&
+            int.TryParse(value, out var parsed))
+        {
+            return parsed;
+        }
+        return defaultValue;
     }
 
     private static void SetRefreshTokenCookie(HttpContext context, string token, DateTime expiresAt)

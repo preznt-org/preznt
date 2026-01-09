@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Preznt.Infrastructure.Data;
@@ -11,9 +12,11 @@ using Preznt.Infrastructure.Data;
 namespace Preznt.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(PrezntDbContext))]
-    partial class PrezntDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260109023851_AddTokensInvalidatedAt")]
+    partial class AddTokensInvalidatedAt
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

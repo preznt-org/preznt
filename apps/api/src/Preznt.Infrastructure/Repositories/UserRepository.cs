@@ -25,6 +25,12 @@ public sealed class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.GitHubId == gitHubId, ct);
     }
 
+    public async Task<User?> GetByUsernameAsync(string username, CancellationToken ct = default)
+    {
+        return await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Username == username, ct);
+    }
+
     public async Task<User?> GetByRefreshTokenHashAsync(string tokenHash, CancellationToken ct = default)
     {
         return await _dbContext.Users
