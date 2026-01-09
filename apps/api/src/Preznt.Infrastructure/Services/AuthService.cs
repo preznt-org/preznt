@@ -103,4 +103,22 @@ public sealed class AuthService : IAuthService
                 user.Name,
                 user.AvatarUrl)));
     }
+
+    public async Task<Result<UserInfo>> GetCurrentUserAsync(Guid userId, CancellationToken ct = default)
+    {
+        var user = await _userRepository.GetByIdAsync(userId, ct);
+        
+        if (user is null)
+        {
+            return Result<UserInfo>.Failure(
+                new ResultError(ErrorType.NotFound, "User not found"));
+        }
+
+        return Result<UserInfo>.Success(new UserInfo(
+            user.Id,
+            user.Username,
+            user.Email,
+            user.Name,
+            user.AvatarUrl));
+    }
 }

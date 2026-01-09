@@ -30,9 +30,9 @@ public sealed class GitHubAuthService : IGitHubAuthService
         var scopes = string.Join(" ", _settings.Scopes);
         return $"{Constants.AuthorizationEndpoint}?" +
                $"client_id={_settings.ClientId}" +
-               $"$redirect_uri={Uri.EscapeDataString(_settings.CallbackUrl)}" +
-               $"$scope={Uri.EscapeDataString(scopes)}" +
-               $"$state={state}";
+               $"&redirect_uri={Uri.EscapeDataString(_settings.CallbackUrl)}" +
+               $"&scope={Uri.EscapeDataString(scopes)}" +
+               $"&state={state}";
     }
 
     public async Task<GitHubTokenResponse?> ExchangeCodeForTokenAsync(string code, CancellationToken ct = default)
@@ -139,19 +139,7 @@ public sealed class GitHubAuthService : IGitHubAuthService
         }
     }
 
-    // Internal DTOs for GitHub API responses
-    private sealed record GitHubOAuthResponse(
-        [property: JsonPropertyName("access_token")] string? AccessToken,
-        [property: JsonPropertyName("token_type")] string? TokenType,
-        [property: JsonPropertyName("scope")] string? Scope);
-
-    private sealed record GitHubUserResponse(
-        [property: JsonPropertyName("id")] long Id,
-        [property: JsonPropertyName("login")] string Login,
-        [property: JsonPropertyName("email")] string? Email,
-        [property: JsonPropertyName("name")] string? Name,
-        [property: JsonPropertyName("avatar_url")] string? AvatarUrl);
-
+    // Internal DTO for GitHub email response
     private sealed record GitHubEmailResponse(
         [property: JsonPropertyName("email")] string Email,
         [property: JsonPropertyName("primary")] bool Primary,
