@@ -4,7 +4,7 @@ using Preznt.Core.Entities;
 using Preznt.Core.Interfaces.Repositories;
 using Preznt.Core.Interfaces.Services;
 
-namespace Preznt.Core.Services;
+namespace Preznt.Infrastructure.Services;
 
 public sealed class PortfolioService : IPortfolioService
 {
@@ -26,8 +26,8 @@ public sealed class PortfolioService : IPortfolioService
         CreatePortfolioRequest request,
         CancellationToken ct = default)
     {
-        var count = _portfolioRepository.GetCountByUserIdAsync(userId, ct);
-        if (count.Result >= MaxPortfoliosPerUser)
+        var count = await _portfolioRepository.GetCountByUserIdAsync(userId, ct);
+        if (count >= MaxPortfoliosPerUser)
         {
             return Result<PortfolioResponse>.Failure(
                 new ResultError(ErrorType.Forbidden, $"User has reached the maximum number of portfolios ({MaxPortfoliosPerUser})"));
@@ -86,25 +86,146 @@ public sealed class PortfolioService : IPortfolioService
         return Result<IReadOnlyList<PortfolioListItem>>.Success(items);
     }
 
-    public Task<Result<bool>> DeleteAsync(Guid userId, Guid portfolioId, CancellationToken ct = default)
+    public async Task<Result<PortfolioResponse>> UpdateAsync(Guid userId, Guid portfolioId, UpdatePortfolioRequest request, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        var portfolio = await _portfolioRepository.GetByIdWithDetailsAsync(portfolioId, ct);
+
+        if (portfolio is null || portfolio.UserId != userId)
+        {
+            return Result<PortfolioResponse>.NotFound("Portfolio", portfolioId.ToString());
+        }
+
+        // Regenerate slug if display name has changed
+        if (!string.IsNullOrEmpty(request.DisplayName) && request.DisplayName != portfolio.DisplayName)
+        {
+            var newSlug = await GenerateUniqueSlugAsync(userId, request.DisplayName, ct);
+            portfolio.UpdateSlug(newSlug);
+        }
+
+        portfolio.UpdatePersonalInfo(
+            displayName: request.DisplayName ?? portfolio.DisplayName,
+            position: request.Position ?? portfolio.Position,
+            company: request.Company ?? portfolio.Company,
+            bio: request.Bio ?? portfolio.Bio,
+            location: request.Location ?? portfolio.Location,
+            contactEmail: request.ContactEmail ?? portfolio.ContactEmail);
+
+        portfolio.UpdateSocialLinks(
+            gitHubUrl: request.GitHubUrl ?? portfolio.GitHubUrl,
+            linkedInUrl: request.LinkedInUrl ?? portfolio.LinkedInUrl,
+            twitterUrl: request.TwitterUrl ?? portfolio.TwitterUrl,
+            websiteUrl: request.WebsiteUrl ?? portfolio.WebsiteUrl);
+
+        if (request.ProfileImageUrl is not null)
+        {
+            portfolio.SetProfileImage(request.ProfileImageUrl);
+        }
+
+        if (!string.IsNullOrEmpty(request.ThemeId))
+        {
+            portfolio.SetTheme(request.ThemeId);
+        }
+
+        _portfolioRepository.Update(portfolio);
+        await _portfolioRepository.SaveChangesAsync(ct);
+
+        return Result<PortfolioResponse>.Success(ToResponse(portfolio));
     }
 
-    public Task<Result<PortfolioResponse>> SetProjectsAsync(Guid userId, Guid portfolioId, SetProjectsRequest request, CancellationToken ct = default)
+    public async Task<Result<bool>> DeleteAsync(Guid userId, Guid portfolioId, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        var portfolio = await _portfolioRepository.GetByIdWithDetailsAsync(portfolioId, ct);
+
+        if (portfolio is null || portfolio.UserId != userId)
+        {
+            return Result<bool>.NotFound("Portfolio", portfolioId.ToString());
+        }
+
+        _portfolioRepository.Delete(portfolio);
+        await _portfolioRepository.SaveChangesAsync(ct);
+
+        _logger.LogInformation("Portfolio {PortfolioId} deleted for User {UserId}", portfolio.Id, userId);
+
+        return Result<bool>.Success(true);
     }
 
-    public Task<Result<PortfolioResponse>> SetSkillsAsync(Guid userId, Guid portfolioId, SetSkillsRequest request, CancellationToken ct = default)
+    public async Task<Result<PortfolioResponse>> SetProjectsAsync(Guid userId, Guid portfolioId, SetProjectsRequest request, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        if (request.Projects.Count > MaxRepositoriesPerPortfolio)
+        {
+            return Result<PortfolioResponse>.Failure(
+                new ResultError(ErrorType.Validation, $"Cannot generate more than {MaxRepositoriesPerPortfolio} repositories to a portfolio"));
+        }
+
+        var portfolio = await _portfolioRepository.GetByIdWithDetailsAsync(portfolioId, ct);
+
+        if (portfolio is null || portfolio.UserId != userId)
+        {
+            return Result<PortfolioResponse>.NotFound("Portfolio", portfolioId.ToString());
+        }
+
+        portfolio.ClearProjects();
+
+        for (var i = 0; i < request.Projects.Count; i++)
+        {
+            var input = request.Projects[i];
+            var project = PortfolioProject.Create(
+                portfolioId: portfolio.Id,
+                gitHubRepoId: input.GitHubRepoId,
+                name: input.Name,
+                originalDescription: input.Description,
+                repoUrl: input.RepoUrl,
+                language: input.Language,
+                stars: input.Stars,
+                forks: input.Forks,
+                displayOrder: i);
+
+            if (input.IsFeatured)
+            {
+                project.SetFeatured(true);
+            }
+
+            portfolio.AddProject(project);
+        }
+        _portfolioRepository.Update(portfolio);
+        await _portfolioRepository.SaveChangesAsync(ct);
+
+        return Result<PortfolioResponse>.Success(ToResponse(portfolio));
     }
 
-    public Task<Result<PortfolioResponse>> UpdateAsync(Guid userId, Guid portfolioId, UpdatePortfolioRequest request, CancellationToken ct = default)
+    public async Task<Result<PortfolioResponse>> SetSkillsAsync(
+        Guid userId,
+        Guid portfolioId,
+        SetSkillsRequest request,
+        CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        var portfolio = await _portfolioRepository.GetByIdWithDetailsAsync(portfolioId, ct);
+
+        if (portfolio is null || portfolio.UserId != userId)
+        {
+            return Result<PortfolioResponse>.NotFound("Portfolio", portfolioId.ToString());
+        }
+
+        portfolio.ClearSkills();
+
+        for (var i = 0; i < request.Skills.Count; i++)
+        {
+            var input = request.Skills[i];
+            var skill = PortfolioSkill.Create(
+                portfolioId: portfolio.Id,
+                name: input.Name,
+                category: input.Category,
+                displayOrder: i);
+
+            portfolio.AddSkill(skill);
+        }
+
+        _portfolioRepository.Update(portfolio);
+        await _portfolioRepository.SaveChangesAsync(ct);
+
+        return Result<PortfolioResponse>.Success(ToResponse(portfolio));
     }
+
 
     private async Task<string> GenerateUniqueSlugAsync(Guid userId, string displayName, CancellationToken ct)
     {

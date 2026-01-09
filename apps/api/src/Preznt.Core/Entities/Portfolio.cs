@@ -52,8 +52,8 @@ public sealed class Portfolio
         string displayName,
         string? position = null,
         string? company = null,
-        string? location = null,
         string? bio = null,
+        string? location = null,
         string? profileImageUrl = null,
         string? gitHubUrl = null,
         string themeId = "default")
@@ -66,15 +66,21 @@ public sealed class Portfolio
             DisplayName = displayName,
             Position = position,
             Company = company,
+            Bio = bio,
             Location = location,
             ProfileImageUrl = profileImageUrl,
             GitHubUrl = gitHubUrl,
-            Bio = bio,
             ThemeId = themeId,
             Status = PortfolioStatus.Draft,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
+    }
+    
+    public void UpdateSlug(string slug)
+    {
+        Slug = slug;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     public void UpdatePersonalInfo(
@@ -110,12 +116,6 @@ public sealed class Portfolio
     public void SetProfileImage(string? profileImageUrl)
     {
         ProfileImageUrl = profileImageUrl;
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    public void UpdateTitle(string title, string slug)
-    {
-        Slug = slug;
         UpdatedAt = DateTime.UtcNow;
     }
 

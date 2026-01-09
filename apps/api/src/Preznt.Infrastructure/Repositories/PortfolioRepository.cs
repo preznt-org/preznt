@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Preznt.Core.Entities;
+using Preznt.Core.Interfaces.Repositories;
 using Preznt.Infrastructure.Data;
 
-namespace Preznt.Core.Interfaces.Repositories;
+namespace Preznt.Infrastructure.Repositories;
 
 public sealed class PortfolioRepository : IPortfolioRepository
 {

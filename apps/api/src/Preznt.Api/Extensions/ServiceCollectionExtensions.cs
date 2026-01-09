@@ -29,11 +29,13 @@ public static class ServiceCollectionExtensions
 
         // Repositories
         services.AddScoped<IUserRepository, UserRepository>();
-
+        services.AddScoped<IPortfolioRepository, PortfolioRepository>();
+        
         // Services
         services.AddSingleton<IGitHubService, GitHubService>();
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IPortfolioService, PortfolioService>();
 
         return services;
     }

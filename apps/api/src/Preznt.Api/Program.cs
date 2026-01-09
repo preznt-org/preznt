@@ -59,6 +59,11 @@ api.MapGroup("/auth")
     .MapAuthEndpoints()
     .WithTags("Authentication");
 
+api.MapGroup("/portfolios")
+    .MapPortfolioEndpoints()
+    .WithTags("Portfolios")
+    .RequireAuthorization();
+    
 // Health check endpoints
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
    .WithTags("Health");
