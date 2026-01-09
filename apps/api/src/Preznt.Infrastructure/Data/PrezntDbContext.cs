@@ -11,6 +11,9 @@ public sealed class PrezntDbContext : DbContext
     }
 
     public DbSet<User> Users => Set<User>();
+    public DbSet<Portfolio> Portfolios => Set<Portfolio>();
+    public DbSet<PortfolioProject> PortfolioProjects => Set<PortfolioProject>();
+    public DbSet<PortfolioSkill> PortfolioSkills => Set<PortfolioSkill>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
