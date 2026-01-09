@@ -32,6 +32,8 @@ public sealed record MeResponse(
     string? Name,
     string? AvatarUrl,
     string? Bio,
+    string? Company,
+    string? Location,
     IReadOnlyList<RepositoryInfo> Repositories,
     PaginationInfo Pagination);
 

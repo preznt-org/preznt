@@ -88,6 +88,8 @@ public sealed class GitHubService : IGitHubService
                 email,
                 user.Name,
                 user.AvatarUrl,
+                user.Company,
+                user.Location,
                 user.Bio);
         }
         catch (Exception ex)

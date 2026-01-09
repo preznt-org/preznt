@@ -16,6 +16,8 @@ public sealed record GitHubUserResult(
     string? Email,
     string? Name,
     string? AvatarUrl,
+    string? Company,
+    string? Location,
     string? Bio);
 
 public sealed record GitHubRepoResult(

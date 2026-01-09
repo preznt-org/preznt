@@ -63,6 +63,9 @@ public sealed class AuthService : IAuthService
                 gitHubUser.Email,
                 gitHubUser.Name,
                 gitHubUser.AvatarUrl,
+                gitHubUser.Company,
+                gitHubUser.Location,
+                gitHubUser.Bio,
                 tokenResult.AccessToken);
 
             _userRepository.Add(user);
@@ -75,6 +78,9 @@ public sealed class AuthService : IAuthService
                 gitHubUser.Email,
                 gitHubUser.Name,
                 gitHubUser.AvatarUrl,
+                gitHubUser.Company,
+                gitHubUser.Location,
+                gitHubUser.Bio,
                 tokenResult.AccessToken);
 
             _userRepository.Update(user);
@@ -149,9 +155,18 @@ public sealed class AuthService : IAuthService
             HasPreviousPage: page > 1,
             HasNextPage: page < totalPages);
 
+        // Use stored user data instead of fetching from GitHub again
         return Result<MeResponse>.Success(new MeResponse(
-            user.Id, user.Username, user.Email, user.Name, user.AvatarUrl,
-            gitHubUser?.Bio, repositories, pagination));
+            user.Id,
+            user.Username,
+            user.Email,
+            user.Name,
+            user.AvatarUrl,
+            user.Bio,
+            user.Company,
+            user.Location,
+            repositories,
+            pagination));
     }
 
     private async Task<Result<AuthResponse>> GenerateTokensAndSave(User user, CancellationToken ct)
