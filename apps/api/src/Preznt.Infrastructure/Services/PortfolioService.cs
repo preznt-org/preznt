@@ -55,17 +55,24 @@ public sealed class PortfolioService : IPortfolioService
         return Result<PortfolioResponse>.Success(ToResponse(portfolio));
     }
 
+    public async Task<Result<PortfolioResponse>> GetByIdAsync(Guid userId, Guid portfolioId, CancellationToken ct = default)
+    {
+        var portfolio = await _portfolioRepository.GetByIdWithDetailsAsync(portfolioId, ct);
+
+        if (portfolio is null || portfolio.UserId != userId)
+        {
+            return Result<PortfolioResponse>.NotFound("Portfolio", portfolioId.ToString());
+        }
+
+        return Result<PortfolioResponse>.Success(ToResponse(portfolio));
+    }
+
     public Task<Result<bool>> DeleteAsync(Guid userId, Guid portfolioId, CancellationToken ct = default)
     {
         throw new NotImplementedException();
     }
 
     public Task<Result<IReadOnlyList<PortfolioListItem>>> GetAllAsync(Guid userId, CancellationToken ct = default)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<Result<PortfolioResponse>> GetByIdAsync(Guid userId, Guid portfolioId, CancellationToken ct = default)
     {
         throw new NotImplementedException();
     }
