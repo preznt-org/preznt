@@ -30,6 +30,23 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Global exception handler
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/problem+json";
+        await context.Response.WriteAsJsonAsync(new
+        {
+            type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+            title = "Internal Server Error",
+            status = 500,
+            detail = "An unexpected error occurred. Please try again later."
+        });
+    });
+});
+
 app.UseHttpsRedirection();
 app.UseCors("Frontend");
 

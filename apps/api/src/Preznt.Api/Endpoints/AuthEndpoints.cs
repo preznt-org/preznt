@@ -162,7 +162,10 @@ public static class AuthEndpoints
     private static IResult ToProblem(ResultError error) => error.Type switch
     {
         ErrorType.NotFound => Results.Problem(error.Message, statusCode: 404),
+        ErrorType.Validation => Results.Problem(error.Message, statusCode: 400),
         ErrorType.Unauthorized => Results.Problem(error.Message, statusCode: 401),
-        _ => Results.Problem(error.Message, statusCode: 500)
+        ErrorType.Forbidden => Results.Problem(error.Message, statusCode: 403),
+        ErrorType.Conflict => Results.Problem(error.Message, statusCode: 409),
+        _ => Results.Problem("An unexpected error occurred", statusCode: 500)
     };
 }
