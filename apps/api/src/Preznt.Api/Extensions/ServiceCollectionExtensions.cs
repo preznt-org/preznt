@@ -36,6 +36,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IPortfolioService, PortfolioService>();
+        services.AddSingleton<IThemeRenderService, ThemeRenderService>();
 
         return services;
     }

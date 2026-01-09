@@ -63,7 +63,12 @@ api.MapGroup("/portfolios")
     .MapPortfolioEndpoints()
     .WithTags("Portfolios")
     .RequireAuthorization();
-    
+
+api.MapGroup("/themes")
+    .MapThemeEndpoints()
+    .WithTags("Themes")
+    .AllowAnonymous();
+
 // Health check endpoints
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
    .WithTags("Health");
