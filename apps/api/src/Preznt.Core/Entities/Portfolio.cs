@@ -1,3 +1,5 @@
+using Preznt.Core.Common;
+
 namespace Preznt.Core.Entities;
 
 public sealed class Portfolio
@@ -25,7 +27,7 @@ public sealed class Portfolio
     public string? WebsiteUrl { get; private set; }
     
     // Theme & Customization
-    public string ThemeId { get; private set; } = "default";
+    public string ThemeId { get; private set; } = AvailableThemes.DefaultThemeId;
     public string? CustomCss { get; private set; }
     
     // Publishing
@@ -76,7 +78,7 @@ public sealed class Portfolio
             UpdatedAt = DateTime.UtcNow
         };
     }
-    
+
     public void UpdateSlug(string slug)
     {
         Slug = slug;
