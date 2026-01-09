@@ -67,12 +67,26 @@ public sealed class PortfolioService : IPortfolioService
         return Result<PortfolioResponse>.Success(ToResponse(portfolio));
     }
 
-    public Task<Result<bool>> DeleteAsync(Guid userId, Guid portfolioId, CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<PortfolioListItem>>> GetAllAsync(Guid userId, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        var portfolios = await _portfolioRepository.GetByUserIdAsync(userId, ct);
+        
+        var items = portfolios
+            .Select(p => new PortfolioListItem(
+                p.Id,
+                p.Slug,
+                p.Status.ToString(),
+                p.DisplayName,
+                p.PublishedUrl,
+                p.Projects.Count,
+                p.Skills.Count,
+                p.UpdatedAt))
+            .ToList();
+
+        return Result<IReadOnlyList<PortfolioListItem>>.Success(items);
     }
 
-    public Task<Result<IReadOnlyList<PortfolioListItem>>> GetAllAsync(Guid userId, CancellationToken ct = default)
+    public Task<Result<bool>> DeleteAsync(Guid userId, Guid portfolioId, CancellationToken ct = default)
     {
         throw new NotImplementedException();
     }
