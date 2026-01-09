@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Preznt.Core.Entities;
@@ -17,7 +18,7 @@ public sealed class JwtService : IJwtService
         _settings = settings.Value;
     }
 
-    public string GenerateToken(User user)
+    public string GenerateAccessToken(User user)
     {
         var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_settings.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -34,14 +35,26 @@ public sealed class JwtService : IJwtService
             issuer: _settings.Issuer,
             audience: _settings.Audience,
             claims: claims,
-            expires: GetExpiryDate(),
+            expires: GetAccessTokenExpiry(),
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
-
     }
 
-    public DateTime GetExpiryDate()
+    public (string Token, string Hash, DateTime ExpiresAt) GenerateRefreshToken()
+    {
+        var bytes = new byte[64];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(bytes);
+        
+        var token = Convert.ToBase64String(bytes);
+        var hash = Convert.ToBase64String(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(token)));
+        var expiresAt = DateTime.UtcNow.AddDays(_settings.RefreshExpiryDays);
+        
+        return (token, hash, expiresAt);
+    }
+
+    public DateTime GetAccessTokenExpiry()
     {
         return DateTime.UtcNow.AddMinutes(_settings.ExpiryInMinutes);
     }

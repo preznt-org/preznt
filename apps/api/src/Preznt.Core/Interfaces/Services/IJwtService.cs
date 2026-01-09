@@ -4,6 +4,7 @@ using Preznt.Core.Entities;
 
 public interface IJwtService
 {
-    string GenerateToken(User user);
-    DateTime GetExpiryDate();
+    string GenerateAccessToken(User user);
+    (string Token, string Hash, DateTime ExpiresAt) GenerateRefreshToken();
+    DateTime GetAccessTokenExpiry();
 }

@@ -7,5 +7,6 @@ public sealed class JwtSettings
     public required string SecretKey { get; init; }
     public required string Issuer { get; init; }
     public required string Audience { get; init; }
-    public required int ExpiryInMinutes { get; init; } = 30;
+    public int ExpiryInMinutes { get; init; } = 60;
+    public int RefreshExpiryDays { get; init; } = 60;
 }

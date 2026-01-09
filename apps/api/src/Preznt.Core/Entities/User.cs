@@ -9,6 +9,8 @@ public sealed class User
     public string? Name {get; private set; }
     public string? AvatarUrl {get; private set; }
     public string GitHubAccessToken { get; private set; } = null!;
+    public string? RefreshTokenHash { get; private set; }
+    public DateTime? RefreshTokenExpiresAt { get; private set; }
     public DateTime CreatedAt {get; private set; }
     public DateTime UpdatedAt {get; private set; }
 
@@ -50,5 +52,25 @@ public sealed class User
         AvatarUrl = avatarUrl;
         GitHubAccessToken = gitHubAccessToken;
         UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void SetRefreshToken(string tokenHash, DateTime expiresAt)
+    {
+        RefreshTokenHash = tokenHash;
+        RefreshTokenExpiresAt = expiresAt;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void ClearRefreshToken()
+    {
+        RefreshTokenHash = null;
+        RefreshTokenExpiresAt = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public bool ValidateRefreshToken(string tokenHash)
+    {
+        return RefreshTokenHash == tokenHash 
+            && RefreshTokenExpiresAt > DateTime.UtcNow;
     }
 }
