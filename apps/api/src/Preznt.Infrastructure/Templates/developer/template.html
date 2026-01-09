@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ portfolio.display_name }} - Portfolio</title>
+    <style>{{ css }}</style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="terminal">
+        <div class="terminal-header">
+            <div class="terminal-buttons">
+                <span class="btn-close"></span>
+                <span class="btn-minimize"></span>
+                <span class="btn-maximize"></span>
+            </div>
+            <span class="terminal-title">{{ portfolio.display_name | string.downcase | string.replace " " "-" }}@portfolio:~</span>
+        </div>
+        <div class="terminal-body">
+            <div class="command-line">
+                <span class="prompt">$</span>
+                <span class="command">whoami</span>
+            </div>
+            
+            <div class="output hero-section">
+                {{ if portfolio.profile_image_url }}
+                <img src="{{ portfolio.profile_image_url }}" alt="{{ portfolio.display_name }}" class="avatar">
+                {{ end }}
+                <div class="info">
+                    <h1>{{ portfolio.display_name }}</h1>
+                    {{ if portfolio.position }}
+                    <p class="position"><span class="key">role:</span> {{ portfolio.position }}{{ if portfolio.company }} @ {{ portfolio.company }}{{ end }}</p>
+                    {{ end }}
+                    {{ if portfolio.location }}
+                    <p class="location"><span class="key">location:</span> {{ portfolio.location }}</p>
+                    {{ end }}
+                </div>
+            </div>
+
+            {{ if portfolio.bio }}
+            <div class="command-line">
+                <span class="prompt">$</span>
+                <span class="command">cat bio.txt</span>
+            </div>
+            <div class="output bio">
+                <p>{{ portfolio.bio }}</p>
+            </div>
+            {{ end }}
+
+            <div class="command-line">
+                <span class="prompt">$</span>
+                <span class="command">ls links/</span>
+            </div>
+            <div class="output links">
+                {{ if portfolio.github_url }}<a href="{{ portfolio.github_url }}" target="_blank" rel="noopener">github/</a>{{ end }}
+                {{ if portfolio.linkedin_url }}<a href="{{ portfolio.linkedin_url }}" target="_blank" rel="noopener">linkedin/</a>{{ end }}
+                {{ if portfolio.twitter_url }}<a href="{{ portfolio.twitter_url }}" target="_blank" rel="noopener">twitter/</a>{{ end }}
+                {{ if portfolio.website_url }}<a href="{{ portfolio.website_url }}" target="_blank" rel="noopener">website/</a>{{ end }}
+            </div>
+
+            {{ if portfolio.projects.size > 0 }}
+            <div class="command-line">
+                <span class="prompt">$</span>
+                <span class="command">ls -la projects/</span>
+            </div>
+            <div class="output projects-list">
+                <div class="table-header">
+                    <span>stars</span>
+                    <span>forks</span>
+                    <span>lang</span>
+                    <span>name</span>
+                </div>
+                {{ for project in portfolio.projects }}
+                <div class="project-row">
+                    <span class="stars">{{ project.stars }}</span>
+                    <span class="forks">{{ project.forks }}</span>
+                    <span class="lang">{{ project.language ?? "misc" }}</span>
+                    <a href="{{ project.repo_url }}" target="_blank" rel="noopener" class="name">{{ project.name }}/</a>
+                </div>
+                {{ end }}
+            </div>
+
+            {{ for project in portfolio.projects }}
+            <div class="command-line">
+                <span class="prompt">$</span>
+                <span class="command">cat projects/{{ project.name }}/README.md</span>
+            </div>
+            <div class="output project-detail">
+                <h3>{{ project.name }}</h3>
+                <p>{{ project.description }}</p>
+                {{ if project.ai_highlights.size > 0 }}
+                <ul class="highlights">
+                    {{ for highlight in project.ai_highlights }}
+                    <li><span class="bullet">→</span> {{ highlight }}</li>
+                    {{ end }}
+                </ul>
+                {{ end }}
+            </div>
+            {{ end }}
+            {{ end }}
+
+            {{ if portfolio.skills.size > 0 }}
+            <div class="command-line">
+                <span class="prompt">$</span>
+                <span class="command">echo $SKILLS</span>
+            </div>
+            <div class="output skills">
+                {{ for skill in portfolio.skills }}
+                <span class="skill-tag" data-category="{{ skill.category }}">{{ skill.name }}</span>
+                {{ end }}
+            </div>
+            {{ end }}
+
+            <div class="command-line">
+                <span class="prompt">$</span>
+                <span class="command blink">_</span>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Built with <a href="https://preznt.dev" target="_blank" rel="noopener">Preznt</a> | {{ year }}</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ portfolio.display_name }} - Portfolio</title>
+    <style>{{ css }}</style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="hero">
+            <div class="hero-content">
+                {{ if portfolio.profile_image_url }}
+                <img src="{{ portfolio.profile_image_url }}" alt="{{ portfolio.display_name }}" class="avatar">
+                {{ end }}
+                <div class="hero-text">
+                    <h1>{{ portfolio.display_name }}</h1>
+                    {{ if portfolio.position }}
+                    <p class="position">{{ portfolio.position }}{{ if portfolio.company }} @ {{ portfolio.company }}{{ end }}</p>
+                    {{ end }}
+                    {{ if portfolio.location }}
+                    <p class="location">📍 {{ portfolio.location }}</p>
+                    {{ end }}
+                </div>
+            </div>
+            {{ if portfolio.bio }}
+            <p class="bio">{{ portfolio.bio }}</p>
+            {{ end }}
+            
+            <div class="social-links">
+                {{ if portfolio.github_url }}<a href="{{ portfolio.github_url }}" target="_blank" rel="noopener" class="social-link">GitHub</a>{{ end }}
+                {{ if portfolio.linkedin_url }}<a href="{{ portfolio.linkedin_url }}" target="_blank" rel="noopener" class="social-link">LinkedIn</a>{{ end }}
+                {{ if portfolio.twitter_url }}<a href="{{ portfolio.twitter_url }}" target="_blank" rel="noopener" class="social-link">Twitter</a>{{ end }}
+                {{ if portfolio.website_url }}<a href="{{ portfolio.website_url }}" target="_blank" rel="noopener" class="social-link">Website</a>{{ end }}
+            </div>
+        </header>
+
+        {{ if portfolio.projects.size > 0 }}
+        <section class="projects">
+            <h2><span class="section-number">01</span> Projects</h2>
+            <div class="project-grid">
+                {{ for project in portfolio.projects }}
+                <article class="project-card">
+                    <div class="project-header">
+                        <h3><a href="{{ project.repo_url }}" target="_blank" rel="noopener">{{ project.name }}</a></h3>
+                        <div class="project-meta">
+                            {{ if project.language }}<span class="language">{{ project.language }}</span>{{ end }}
+                            <span class="stars">⭐ {{ project.stars }}</span>
+                        </div>
+                    </div>
+                    <p class="project-description">{{ project.description }}</p>
+                    {{ if project.ai_highlights.size > 0 }}
+                    <ul class="highlights">
+                        {{ for highlight in project.ai_highlights }}
+                        <li>{{ highlight }}</li>
+                        {{ end }}
+                    </ul>
+                    {{ end }}
+                </article>
+                {{ end }}
+            </div>
+        </section>
+        {{ end }}
+
+        {{ if portfolio.skills.size > 0 }}
+        <section class="skills">
+            <h2><span class="section-number">02</span> Skills</h2>
+            <div class="skill-grid">
+                {{ for skill in portfolio.skills }}
+                <span class="skill-tag" data-category="{{ skill.category }}">{{ skill.name }}</span>
+                {{ end }}
+            </div>
+        </section>
+        {{ end }}
+
+        <footer>
+            <p>Built with <a href="https://preznt.dev" target="_blank" rel="noopener">Preznt</a> &copy; {{ year }}</p>
+        </footer>
+    </div>
+</body>
+</html>
