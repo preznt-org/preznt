@@ -6,7 +6,6 @@ public sealed class Portfolio
     public Guid UserId { get; private set; }
     
     // Basic
-    public string Title { get; private set; } = null!;
     public string Slug { get; private set; } = null!;
     public PortfolioStatus Status { get; private set; }
     
@@ -60,7 +59,6 @@ public sealed class Portfolio
         {
             Id = Guid.NewGuid(),
             UserId = userId,
-            Title = title,
             Slug = slug,
             DisplayName = displayName,
             Position = position,
@@ -110,7 +108,6 @@ public sealed class Portfolio
 
     public void UpdateTitle(string title, string slug)
     {
-        Title = title;
         Slug = slug;
         UpdatedAt = DateTime.UtcNow;
     }

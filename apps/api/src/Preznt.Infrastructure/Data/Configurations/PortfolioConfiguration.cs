@@ -19,12 +19,6 @@ public sealed class PortfolioConfiguration : IEntityTypeConfiguration<Portfolio>
             .HasColumnName("user_id")
             .IsRequired();
 
-        // Basic
-        builder.Property(p => p.Title)
-            .HasColumnName("title")
-            .HasMaxLength(200)
-            .IsRequired();
-
         builder.Property(p => p.Slug)
             .HasColumnName("slug")
             .HasMaxLength(100)
