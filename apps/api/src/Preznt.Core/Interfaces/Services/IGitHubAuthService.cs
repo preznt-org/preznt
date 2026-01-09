@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Preznt.Core.Interfaces.Services;
 
 public interface IGitHubAuthService
@@ -8,13 +10,13 @@ public interface IGitHubAuthService
 }
 
 public sealed record GitHubTokenResponse(
-    string AccessToken,
-    string TokenType,
-    string Scope);
+    [property: JsonPropertyName("access_token")] string AccessToken,
+    [property: JsonPropertyName("token_type")] string TokenType,
+    [property: JsonPropertyName("scope")] string Scope);
 
 public sealed record GitHubUserInfo(
-    long Id,
-    string Login,
-    string? Email,
-    string? Name,
-    string? AvatarUrl);
+    [property: JsonPropertyName("id")] long Id,
+    [property: JsonPropertyName("login")] string Login,
+    [property: JsonPropertyName("email")] string? Email,
+    [property: JsonPropertyName("name")] string? Name,
+    [property: JsonPropertyName("avatar_url")] string? AvatarUrl);
