@@ -48,12 +48,15 @@ public sealed class Portfolio
 
     public static Portfolio Create(
         Guid userId,
-        string title,
         string slug,
         string displayName,
         string? position = null,
         string? company = null,
-        string? bio = null)
+        string? location = null,
+        string? bio = null,
+        string? profileImageUrl = null,
+        string? gitHubUrl = null,
+        string themeId = "default")
     {
         return new Portfolio
         {
@@ -63,7 +66,11 @@ public sealed class Portfolio
             DisplayName = displayName,
             Position = position,
             Company = company,
+            Location = location,
+            ProfileImageUrl = profileImageUrl,
+            GitHubUrl = gitHubUrl,
             Bio = bio,
+            ThemeId = themeId,
             Status = PortfolioStatus.Draft,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
